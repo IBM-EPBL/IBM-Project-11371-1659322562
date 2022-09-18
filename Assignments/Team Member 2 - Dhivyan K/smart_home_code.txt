@@ -1,0 +1,70 @@
+#include <Servo.h>
+
+int LightSensorVal = 0; 
+int PIRSensorVal = 0;   
+int RelayOutputVal = 0;  
+const int gas =0;
+float sensorvalue = 0;
+Servo servo_12;
+long duration;
+int distanceCm, distanceInch;
+
+void setup()
+{
+  pinMode(A0, INPUT);  //Photoresistor
+  pinMode(2, INPUT);   //PIR Sensor
+  pinMode(8, OUTPUT);  //Relay
+  pinMode(3, OUTPUT);  //Buzzer
+  pinMode(7, OUTPUT);  //Trigger
+  pinMode(4, INPUT);   //Echo
+  pinMode(A1, INPUT);  //Gas sensor
+  servo_12.attach(12);  //Servo motor (door)
+  
+  Serial.begin(9600);
+
+}
+
+void loop()
+{
+  /* For Automatic Lights On and Off  */
+  LightSensorVal = analogRead(A0);
+  PIRSensorVal = digitalRead(2);
+  if (LightSensorVal < 600) {
+    if (PIRSensorVal == HIGH) {
+      digitalWrite(8, HIGH);
+      delay(10000);
+    } else {
+      digitalWrite(8, LOW);
+      delay(1000); 
+    }
+  } else {
+    digitalWrite(8, LOW);
+    Serial.println(LightSensorVal);
+    delay(300); 
+  }
+  
+  
+  /* For Detecting the Gas  */
+  sensorvalue = analogRead(A1);
+  if(sensorvalue >= 470){
+    tone(3,255,255);
+    Serial.println(" |SMOKE DETECTED");
+    
+  
+  }
+  
+  
+  /*  For Automatic Door opening  */
+  digitalWrite(7, LOW);
+  delayMicroseconds(2);
+  digitalWrite(7, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(7, LOW);
+  duration = pulseIn(4, HIGH);
+  distanceCm= duration*0.034/2;
+  if(distanceCm<=100){
+  	servo_12.write(180);
+    delay(5000);
+    servo_12.write(90);
+  }
+}
